@@ -375,6 +375,12 @@ class MainActivity : AppCompatActivity() {
         binding.bottomPanel.setOnTouchListener { _, event -> handleDrawerTouch(event) }
         binding.zoomValueText.setOnTouchListener { _, event -> handleZoomWheelTouch(event) }
         setupSystemInsets()
+
+        // Samsung-style smooth rotating zoom wheel listener
+        binding.zoomWheel?.onZoomRatioChanged = { ratio ->
+            setZoomImmediately(ratio, syncSlider = true)
+        }
+
         buildPresetBar()
         bringControlUiToFront()
         setToolsDrawerOpen(open = false, animate = false)
@@ -863,42 +869,20 @@ class MainActivity : AppCompatActivity() {
     private fun isPortraitUi(): Boolean =
         pixelPortraitOnly || resources.configuration.orientation == Configuration.ORIENTATION_PORTRAIT
 
-    private fun buildPresetBar() {
-        val bar = binding.zoomPresetBar
+        private fun buildPresetBar() {
         val secondaryBar = binding.secondaryControlBar
-        bar.removeAllViews()
         secondaryBar.removeAllViews()
         presetButtons.clear()
-        mainZoomStops.forEach { preset ->
-            val btn = MaterialButton(
-                this, null, com.google.android.material.R.attr.materialButtonOutlinedStyle
-            ).apply {
-                text = preset.label
-                setTextColor(0xFFFFFFFF.toInt())
-                textSize = 13f
-                insetTop = 0; insetBottom = 0
-                val dp = resources.displayMetrics.density
-                layoutParams = LinearLayout.LayoutParams(
-                    LinearLayout.LayoutParams.WRAP_CONTENT,
-                    (34 * dp).toInt()
-                ).apply { marginEnd = (6 * dp).toInt() }
-                cornerRadius = (17 * dp).toInt()
-                setBackgroundColor(0x22FFFFFF)
-                setOnClickListener { animateZoomTo(preset.ratio) }
-            }
-            presetButtons.add(btn)
-            bar.addView(btn)
-        }
-        addToolButton(bar, "Rail") { advanceZoomRail(+1) }
-        addToolButton(bar, "←") { nudgeDigitalCrop(-1, 0) }
-        addToolButton(bar, "↑") { nudgeDigitalCrop(0, -1) }
-        addToolButton(bar, "•") { centerDigitalCrop() }
-        addToolButton(bar, "↓") { nudgeDigitalCrop(0, 1) }
-        addToolButton(bar, "→") { nudgeDigitalCrop(1, 0) }
-        addHoldToolButton(bar, getString(R.string.freeze_scope))
-        addToolButton(bar, "Heat") { toggleHeatHaze() }
-        addToolButton(bar, "Bracket") { startFocusSweepBracket() }
-        refreshPresetHighlight()
+
+        addToolButton(secondaryBar, "Rail") { advanceZoomRail(+1) }
+        addToolButton(secondaryBar, "←") { nudgeDigitalCrop(-1, 0) }
+        addToolButton(secondaryBar, "↑") { nudgeDigitalCrop(0, -1) }
+        addToolButton(secondaryBar, "•") { centerDigitalCrop() }
+        addToolButton(secondaryBar, "↓") { nudgeDigitalCrop(0, 1) }
+        addToolButton(secondaryBar, "→") { nudgeDigitalCrop(1, 0) }
+        addHoldToolButton(secondaryBar, getString(R.string.freeze_scope))
+        addToolButton(secondaryBar, "Heat") { toggleHeatHaze() }
+        addToolButton(secondaryBar, "Bracket") { startFocusSweepBracket() }
     }
 
     private fun addToolButton(bar: LinearLayout, label: String, action: () -> Unit): MaterialButton {
@@ -1260,6 +1244,7 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun applyZoomToPipeline() {
+        binding.zoomWheel?.setExternalZoomRatio(requestedZoom)
         val nativeZoom    = requestedZoom.coerceIn(minNativeZoom, nativeZoomCap)
         val digitalFactor = max(1f, requestedZoom / nativeZoom)
         currentDigitalFactor = digitalFactor
