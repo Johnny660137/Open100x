@@ -51,7 +51,8 @@ class ZoomWheelView @JvmOverloads constructor(
                 val deltaX = event.x - lastX
                 lastX = event.x
 
-                val sensitivity = 0.0015f
+                val sensitivity = 0.0010f // Fine-tuned for smoother, tighter control
+
                 currentProgress = (currentProgress - deltaX * sensitivity).coerceIn(0f, 1f)
 
                 val zoomRatio = minZoom * (maxZoom / minZoom).pow(currentProgress)
