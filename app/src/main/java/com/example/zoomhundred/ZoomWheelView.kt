@@ -31,6 +31,15 @@ class ZoomWheelView @JvmOverloads constructor(
         strokeWidth = 6f
     }
 
+    fun setExternalZoomRatio(ratio: Float) {
+        val clamped = ratio.coerceIn(minZoom, maxZoom)
+        val targetProgress = ln(clamped / minZoom) / ln(maxZoom / minZoom)
+        if (abs(currentProgress - targetProgress) > 0.005f) {
+            currentProgress = targetProgress
+            invalidate()
+        }
+    }
+
     override fun onTouchEvent(event: MotionEvent): Boolean {
         when (event.action) {
             MotionEvent.ACTION_DOWN -> {
@@ -69,7 +78,7 @@ class ZoomWheelView @JvmOverloads constructor(
         val tickSpacing = 24f
         val offset = (currentProgress * 2000f) % tickSpacing
 
-        for (x in -12..12) {
+        for (x in -14..14) {
             val tickX = cx + (x * tickSpacing) - offset
             val distanceFromCenter = abs(tickX - cx) / (width / 2f)
             if (distanceFromCenter <= 1f) {
