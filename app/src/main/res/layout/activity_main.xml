@@ -82,37 +82,31 @@
     <LinearLayout
         android:id="@+id/bottomControlsBar"
         android:layout_width="0dp"
-        android:layout_height="236dp"
+        android:layout_height="250dp"
         android:background="@color/bar_black"
         android:elevation="16dp"
         android:gravity="center_horizontal"
         android:orientation="vertical"
         android:paddingStart="12dp"
-        android:paddingTop="10dp"
+        android:paddingTop="8dp"
         android:paddingEnd="12dp"
         android:paddingBottom="12dp"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent">
 
-        <HorizontalScrollView
+        <!-- Samsung Galaxy Style Smooth Rotating Zoom Wheel -->
+        <com.example.zoomhundred.ZoomWheelView
+            android:id="@+id/zoomWheel"
             android:layout_width="match_parent"
-            android:layout_height="42dp"
-            android:fillViewport="true"
-            android:scrollbars="none">
-
-            <LinearLayout
-                android:id="@+id/zoomPresetBar"
-                android:layout_width="wrap_content"
-                android:layout_height="match_parent"
-                android:gravity="center"
-                android:orientation="horizontal" />
-        </HorizontalScrollView>
+            android:layout_height="52dp"
+            android:layout_marginTop="2dp"
+            android:layout_marginBottom="4dp" />
 
         <HorizontalScrollView
             android:layout_width="match_parent"
             android:layout_height="42dp"
-            android:layout_marginTop="6dp"
+            android:layout_marginTop="2dp"
             android:fillViewport="false"
             android:scrollbars="none">
 
@@ -596,5 +590,4 @@
                 android:text="@string/grid_off" />
         </LinearLayout>
     </LinearLayout>
-
 </androidx.constraintlayout.widget.ConstraintLayout>
