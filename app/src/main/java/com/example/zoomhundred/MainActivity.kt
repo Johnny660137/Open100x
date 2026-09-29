@@ -1135,19 +1135,37 @@ class MainActivity : AppCompatActivity() {
 
     // ── Zoom ──────────────────────────────────────────────────────────────────
 
-    private fun updateHistogram(image: androidx.camera.core.ImageProxy) {
-        val now = SystemClock.uptimeMillis()
-        val lumaPlane = image.planes.firstOrNull() ?: return
-        if (histogramEnabledForAnalyzer && now - lastHistogramUpdateMs >= HISTOGRAM_FRAME_INTERVAL_MS) {
-            lastHistogramUpdateMs = now
-            binding.histogramView.updateFromLumaPlane(
-                buffer = lumaPlane.buffer,
-                rowStride = lumaPlane.rowStride,
-                pixelStride = lumaPlane.pixelStride,
-                width = image.width,
-                height = image.height
-            )
-        }
+        private fun applyZoomToPipeline() {
+        binding.zoomWheel?.setExternalZoomRatio(requestedZoom)
+
+        val nativeZoom = requestedZoom.coerceIn(minNativeZoom, nativeZoomCap)
+        requestNativeZoom(nativeZoom)
+
+        // Seamless GPU scaling: Scale preview relative to what the hardware has actually rendered so far
+        val effectiveHardwareZoom = if (lastAppliedNativeZoom > 0f) lastAppliedNativeZoom else 1f
+        val instantGpuFactor = max(1f, requestedZoom / effectiveHardwareZoom)
+        currentDigitalFactor = instantGpuFactor
+
+        binding.previewView.scaleX = instantGpuFactor
+        binding.previewView.scaleY = instantGpuFactor
+
+        val maxShiftX = binding.previewView.width * (instantGpuFactor - 1f) / 2f
+        val maxShiftY = binding.previewView.height * (instantGpuFactor - 1f) / 2f
+        binding.previewView.translationX = -digitalCropOffsetX * maxShiftX
+        binding.previewView.translationY = -digitalCropOffsetY * maxShiftY
+
+        binding.extremeOverlay.updateCropOffset(digitalCropOffsetX, digitalCropOffsetY)
+        binding.extremeOverlay.updateZoomInfo(
+            requestedZoom,
+            currentHorizontalFovDeg(),
+            currentVerticalFovDeg()
+        )
+        updateZoomLabels()
+        refreshPresetHighlight()
+        updateExtremeOverlay()
+        updateCaptureStabilityUi()
+    }
+  }
         if (heatHazeEnabled && now - lastHeatHazeUpdateMs >= HEAT_HAZE_FRAME_INTERVAL_MS) {
             lastHeatHazeUpdateMs = now
             binding.heatHazeView.updateFromLumaPlane(
