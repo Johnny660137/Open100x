@@ -14,10 +14,6 @@ import com.example.zoomhundred.model.WbMode
 
 private const val TAG = "ProCameraController"
 
-/**
- * Applies manual camera2 settings and hardware ISP enhancement
- * onto CameraX Preview and ImageCapture builders via Camera2Interop.
- */
 object ProCameraController {
 
     fun applyToPreviewBuilder(builder: Preview.Builder, settings: ProSettings) {
@@ -35,17 +31,14 @@ object ProCameraController {
     }
 
     private fun <T> applyHardwareEnhancements(ext: Camera2Interop.Extender<T>) {
-        // Hardware ISP Edge Sharpening (Processed by phone ISP at full 60fps, 0 lag)
         ext.setCaptureRequestOption(
             CaptureRequest.EDGE_MODE,
             CaptureRequest.EDGE_MODE_HIGH_QUALITY
         )
-        // Hardware Noise Reduction to prevent grain when zooming in
         ext.setCaptureRequestOption(
             CaptureRequest.NOISE_REDUCTION_MODE,
             CaptureRequest.NOISE_REDUCTION_MODE_HIGH_QUALITY
         )
-        // Micro-contrast and texture punch
         ext.setCaptureRequestOption(
             CaptureRequest.TONEMAP_MODE,
             CaptureRequest.TONEMAP_MODE_HIGH_QUALITY
