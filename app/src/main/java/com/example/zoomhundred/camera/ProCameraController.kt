@@ -7,7 +7,6 @@ import android.util.Log
 import androidx.camera.camera2.interop.Camera2CameraInfo
 import androidx.camera.camera2.interop.Camera2Interop
 import androidx.camera.core.Camera
-import androidx.camera.core.CameraControl
 import androidx.camera.core.ImageCapture
 import androidx.camera.core.Preview
 import com.example.zoomhundred.model.ProSettings
@@ -16,28 +15,41 @@ import com.example.zoomhundred.model.WbMode
 private const val TAG = "ProCameraController"
 
 /**
- * Applies manual camera2 settings (ISO, shutter speed, white balance)
+ * Applies manual camera2 settings and hardware ISP enhancement
  * onto CameraX Preview and ImageCapture builders via Camera2Interop.
  */
 object ProCameraController {
 
-    /**
-     * Inject Camera2Interop options into the Preview builder.
-     * Call before provider.bindToLifecycle().
-     */
     fun applyToPreviewBuilder(builder: Preview.Builder, settings: ProSettings) {
         val ext = Camera2Interop.Extender(builder)
         applyExposure(ext, settings)
         applyWhiteBalance(ext, settings)
+        applyHardwareEnhancements(ext)
     }
 
-    /**
-     * Inject Camera2Interop options into the ImageCapture builder.
-     */
     fun applyToCapturBuilder(builder: ImageCapture.Builder, settings: ProSettings) {
         val ext = Camera2Interop.Extender(builder)
         applyExposure(ext, settings)
         applyWhiteBalance(ext, settings)
+        applyHardwareEnhancements(ext)
+    }
+
+    private fun <T> applyHardwareEnhancements(ext: Camera2Interop.Extender<T>) {
+        // Hardware ISP Edge Sharpening (Processed by phone ISP at full 60fps, 0 lag)
+        ext.setCaptureRequestOption(
+            CaptureRequest.EDGE_MODE,
+            CaptureRequest.EDGE_MODE_HIGH_QUALITY
+        )
+        // Hardware Noise Reduction to prevent grain when zooming in
+        ext.setCaptureRequestOption(
+            CaptureRequest.NOISE_REDUCTION_MODE,
+            CaptureRequest.NOISE_REDUCTION_MODE_HIGH_QUALITY
+        )
+        // Micro-contrast and texture punch
+        ext.setCaptureRequestOption(
+            CaptureRequest.TONEMAP_MODE,
+            CaptureRequest.TONEMAP_MODE_HIGH_QUALITY
+        )
     }
 
     private fun <T> applyExposure(ext: Camera2Interop.Extender<T>, settings: ProSettings) {
@@ -60,15 +72,11 @@ object ProCameraController {
             WbMode.SHADE       -> CameraMetadata.CONTROL_AWB_MODE_SHADE
             WbMode.TUNGSTEN    -> CameraMetadata.CONTROL_AWB_MODE_INCANDESCENT
             WbMode.FLUORESCENT -> CameraMetadata.CONTROL_AWB_MODE_FLUORESCENT
-            WbMode.CUSTOM      -> CameraMetadata.CONTROL_AWB_MODE_AUTO // lock handled separately
+            WbMode.CUSTOM      -> CameraMetadata.CONTROL_AWB_MODE_AUTO
         }
         ext.setCaptureRequestOption(CaptureRequest.CONTROL_AWB_MODE, awbMode)
     }
 
-    /**
-     * Queries hardware capabilities for the bound camera.
-     * Returns a [CameraCapabilities] object for gating UI features.
-     */
     fun queryCapabilities(camera: Camera): CameraCapabilities {
         return try {
             val info = Camera2CameraInfo.from(camera.cameraInfo)
@@ -89,9 +97,6 @@ object ProCameraController {
         }
     }
 
-    /**
-     * Applies OIS mode via CameraControl after binding.
-     */
     fun applyOisToPreviewBuilder(builder: Preview.Builder, oisOn: Boolean) {
         val mode = if (oisOn)
             CameraMetadata.LENS_OPTICAL_STABILIZATION_MODE_ON
