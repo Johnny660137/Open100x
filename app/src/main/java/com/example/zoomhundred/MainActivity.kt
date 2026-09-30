@@ -1133,7 +1133,7 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-        // ── Zoom ──────────────────────────────────────────────────────────────────
+            // ── Zoom ──────────────────────────────────────────────────────────────────
 
     private fun updateHistogram(image: androidx.camera.core.ImageProxy) {
         val now = SystemClock.uptimeMillis()
@@ -1149,7 +1149,6 @@ class MainActivity : AppCompatActivity() {
             )
         }
         if (heatHazeEnabled && now - lastHeatHazeUpdateMs >= HEAT_HAZE_FRAME_INTERVAL_MS) {
-
             lastHeatHazeUpdateMs = now
             binding.heatHazeView.updateFromLumaPlane(
                 buffer = lumaPlane.buffer,
@@ -1172,6 +1171,7 @@ class MainActivity : AppCompatActivity() {
             )
         }
     }
+
 
     private fun updateLatestScopeFrame(
         buffer: java.nio.ByteBuffer,
